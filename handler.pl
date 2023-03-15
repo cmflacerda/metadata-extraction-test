@@ -1,10 +1,34 @@
 use strict;
 use warnings;
-use Image::ExifTool qw(:Public);
+use HTTP::Tiny;
+use Image::ExifTool;
 
-my $filename = "DJI_0825.JPG"; # assuming the image file is named "image.jpg" and in the same root directory as the script
-my $exifTool = new Image::ExifTool;
-my $info = $exifTool->ImageInfo($filename); # read the image metadata using exiftool
-foreach my $tag (keys %$info) { # print all metadata tags and their values
- print ("$tag: $info->{$tag}\n");
+sub handler {
+    my $bucket_name = 'agintel-general-image-bucket-01';
+    my $key = 'asdcxeDJI_0492.JPG';
+    my $region = 'us-east-2';
+    my $url = "https://${bucket_name}.s3.${region}.amazonaws.com/${key}";
+
+    my $http = HTTP::Tiny->new;
+    my $response = $http->get($url);
+
+    if ($response->{success}) {
+        my $image_data = $response->{content};
+        my $exifTool = Image::ExifTool->new;
+        my $info = $exifTool->ImageInfo(\$image_data);
+
+        my $metadata = { metadata => $info };
+        my $metadata_string = join("\n", map { "$_ : $metadata->{metadata}->{$_}" } keys %{$metadata->{metadata}});
+        print $metadata_string . "\n";
+        return {
+            statusCode => 200,
+            body => $metadata_string
+        };
+    } else {
+        die $response->{status} . ' ' . $response->{reason};
+    }
 }
+
+# test the handler function
+handler();
+

@@ -1,7 +1,7 @@
-FROM amazonlinux:2
+FROM public.ecr.aws/shogo82148/p5-aws-lambda:base-5.36-paws.al2
 
 # Install the necessary packages for installing Perl and ExifTool
-RUN yum -y update && yum -y install perl perl-core zlib-devel openssl-devel gcc make wget tar gzip perl-App-cpanminus perl-MIME-Types && yum clean all
+RUN yum -y update && yum -y install gcc make wget tar gzip libwww-perl && yum clean all
 
 # Download and install Perl
 RUN wget https://www.cpan.org/src/5.0/perl-5.34.0.tar.gz && \
@@ -18,38 +18,23 @@ RUN cd /usr/src/Image-ExifTool-12.57 && \
     make test && \
     make install
 
-#COPY cpanm /usr/bin/cpanm
 
+RUN yum install -y python3
 # Set the working directory to /app
 WORKDIR /app
-
+#COPY handler.pl /app/
+#COPY entrypoint.sh /app/
+COPY handler.py /var/task
+COPY handler.pl /var/task
 # Copy the current directory contents into the container at /app
 COPY . /app
+#RUN rm /opt/lib/perl5/vendor_perl/5.36.0/AWS/Lambda/Bootstrap.pm
+#COPY Bootstrap.pm /opt/lib/perl5/vendor_perl/5.36.0/AWS/Lambda/
+#ENTRYPOINT ["/app/entrypoint.sh"]
+#CMD ["/opt/bin/perl", "-Mhandler", "-e", "handler::handler"]
 
-# Install any required Perl modules
-RUN cpanm File::Which IO::Socket::INET LWP::UserAgent Test::Requires 
-RUN cpanm --notest LWP::Protocol::https
+ 
+#CMD ["handler.py" ]
+#ENTRYPOINT ["python3"]
 
-RUN cpanm Encode encoding Exporter IO::File IO::Handle List::Util Scalar::Util Unicode::Normalize
-#RUN cpanm --notest XML::Parser
-#RUN cpanm --notest XML::SAX::Expat
-#RUN cpanm --notest XML::SAX
-#RUN cpanm --notest XML::Simple
-
-#RUN cpanm File::ShareDir::Install
-#RUN cpanm Amazon::S3
-
-#ADD Amazon-S3-0.60.tar.gz /usr/src/
-#RUN cd /usr/src/Amazon-S3-0.60 && \
-#    perl Makefile.PL && \
-#    make test && \
-#    make install
-
-# Define the command to run your Perl application
-#ENTRYPOINT [ "perl", "-Mawslambdaric", "-e", "awslambdaric::run_handler('handler.pl', \\&handler)" ]
-
-CMD [ "perl", "handler.pl" ]
-#COPY handler.pl ${LAMBDA_TASK_ROOT}
-
-#CMD ["handler.handler"]
-
+CMD ["handler.handler"]
