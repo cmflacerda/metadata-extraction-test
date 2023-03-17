@@ -3,7 +3,11 @@ use warnings;
 use HTTP::Tiny;
 use Image::ExifTool;
 
+
 sub handler {
+
+    my ($event, $context) = @_;
+
     my $bucket_name = 'agintel-general-image-bucket-01';
     my $key = 'asdcxeDJI_0492.JPG';
     my $region = 'us-east-2';
@@ -19,10 +23,10 @@ sub handler {
 
         my $metadata = { metadata => $info };
         my $metadata_string = join("\n", map { "$_ : $metadata->{metadata}->{$_}" } keys %{$metadata->{metadata}});
-        print $metadata_string . "\n";
+        #print $metadata_string . "\n";
         return {
             statusCode => 200,
-            body => $metadata_string
+            event => $event
         };
     } else {
         die $response->{status} . ' ' . $response->{reason};
