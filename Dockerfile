@@ -20,21 +20,13 @@ RUN cd /usr/src/Image-ExifTool-12.57 && \
 
 
 RUN yum install -y python3
+
 # Set the working directory to /app
 WORKDIR /app
-#COPY handler.pl /app/
-#COPY entrypoint.sh /app/
-COPY handler.py /var/task
+
 COPY handler.pl /var/task
+
 # Copy the current directory contents into the container at /app
 COPY . /app
-#RUN rm /opt/lib/perl5/vendor_perl/5.36.0/AWS/Lambda/Bootstrap.pm
-#COPY Bootstrap.pm /opt/lib/perl5/vendor_perl/5.36.0/AWS/Lambda/
-#ENTRYPOINT ["/app/entrypoint.sh"]
-#CMD ["/opt/bin/perl", "-Mhandler", "-e", "handler::handler"]
-
- 
-#CMD ["handler.py" ]
-#ENTRYPOINT ["python3"]
 
 CMD ["handler.handler"]
